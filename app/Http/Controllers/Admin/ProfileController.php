@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 use App\News;
+use App\Profile;
 
 class ProfileController extends Controller
 { 
@@ -18,17 +19,12 @@ class ProfileController extends Controller
   {
     
     
-    $this->validate($request, News::$rules);
-    $news = new News;
+    $this->validate($request, Profile::$rules);
+    $news = new Profile;
     $form = $request->all();
     
     
-      if (isset($form['image'])) {
-        $path = $request->file('image')->store('public/image');
-        $news->image_path = basename($path);
-      } else {
-          $news->image_path = null;
-      }
+     
       
       
       unset($form['_token']);
@@ -42,13 +38,30 @@ class ProfileController extends Controller
   }
   
   public function edit(Request $request)
-  {
-    return view('admin.profile.edit');
+  
+   {
+      // News Modelからデータを取得する
+      $profile = Profile::find($request->id);
+      if (empty($profile)) {
+        abort(404);    
+      }
+      return view('admin.profile.edit', ['profile_form' => $profile]);
   }
 
   public function update(Request $request)
   {
-    return redirect('admin/profile/create');
+     $this->validate($request, Profile::$rules);
+      // News Modelからデータを取得する
+      $profile = Profile::find($request->id);
+      // 送信されてきたフォームデータを格納する
+      $form = $request->all();
+      
+    
+      unset($form['remove']);
+      unset($form['_token']);
+      // 該当するデータを上書きして保存する
+      $profile->fill($form)->save();
+    return redirect()->back();
     
   }
 
